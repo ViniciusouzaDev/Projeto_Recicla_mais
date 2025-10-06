@@ -1,0 +1,235 @@
+import { StyleSheet } from 'react-native';
+
+export const collectorRegisterScreenStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0A0A0A',
+  },
+  backgroundPattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0A0A0A',
+    opacity: 0.1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderBottomWidth: 1,
+    borderBottomColor: '#00D1FF',
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00D1FF',
+    flex: 1,
+    textAlign: 'center',
+  },
+  placeholder: {
+    width: 40,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginVertical: 30,
+  },
+  logoGlow: {
+    shadowColor: '#00D1FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logo: {
+    height: 120,
+    width: 120,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#00D1FF',
+    textAlign: 'center',
+    marginTop: 10,
+    paddingHorizontal: 20,
+    lineHeight: 22,
+  },
+  inputContainer: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00D1FF',
+    marginTop: 20,
+    marginBottom: 15,
+    textShadowColor: '#00D1FF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 5,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00D1FF',
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    shadowColor: '#00D1FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: '#fff',
+  },
+  vehicleTypeContainer: {
+    marginBottom: 20,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#00D1FF',
+    marginBottom: 10,
+  },
+  vehicleTypesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  vehicleTypeCard: {
+    width: '48%',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 209, 255, 0.3)',
+    padding: 15,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  selectedVehicleType: {
+    borderColor: '#00D1FF',
+    backgroundColor: 'rgba(0, 209, 255, 0.1)',
+  },
+  vehicleIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  vehicleName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  selectedVehicleName: {
+    color: '#00D1FF',
+  },
+  buttonContainer: {
+    marginBottom: 30,
+    shadowColor: '#00D1FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    elevation: 10,
+  },
+  registerButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  gradientButton: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  registerButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  loginContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  loginText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#00D1FF',
+    textShadowColor: '#00D1FF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 5,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  footerLink: {
+    color: '#00D1FF',
+    fontWeight: '500',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 12,
+    marginTop: 5,
+    marginBottom: 10,
+    marginLeft: 15,
+  },
+  addressInput: {
+    textAlignVertical: 'top',
+    minHeight: 80,
+  },
+  profileTypeContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  profileTypeCard: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 209, 255, 0.3)',
+    padding: 15,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  selectedProfileType: {
+    borderColor: '#00D1FF',
+    backgroundColor: 'rgba(0, 209, 255, 0.1)',
+  },
+  profileTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+});
