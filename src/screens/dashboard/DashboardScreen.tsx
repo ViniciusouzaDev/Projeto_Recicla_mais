@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import logo from '../../../assets/Logo_recicla.png';
 import { dashboardScreenStyles } from '../../../src/styles/dashboard/DashboardScreenStyles';
+import ProfileHeader from '../../components/ProfileHeader';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -68,11 +69,12 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         <Text style={dashboardScreenStyles.appName}>Recicla+</Text>
       </View>
       
-      <TouchableOpacity style={dashboardScreenStyles.avatarButton}>
-        <View style={dashboardScreenStyles.avatar}>
-          <Ionicons name="person" size={20} color="#fff" />
-        </View>
-      </TouchableOpacity>
+      <ProfileHeader 
+        navigation={navigation} 
+        userType="user" 
+        userName="João Silva" 
+        userEmail="joao.silva@email.com" 
+      />
     </View>
   );
 

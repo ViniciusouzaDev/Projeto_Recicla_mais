@@ -15,7 +15,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import logo from '../../../assets/Logo_recicla.png';
-import { rewardsScreenStyles } from '../../styles/rewards/RewardsScreenStyles';
+import { rewardsScreenStyles } from '../../../src/styles/rewards/RewardsScreenStyles';
+import ProfileHeader from '../../components/ProfileHeader';
 
 const { width } = Dimensions.get('window');
 
@@ -120,11 +121,12 @@ export default function RewardsScreen({ navigation }: RewardsScreenProps) {
         <Text style={rewardsScreenStyles.appName}>Recicla+</Text>
       </View>
       
-      <TouchableOpacity style={rewardsScreenStyles.avatarButton}>
-        <View style={rewardsScreenStyles.avatar}>
-          <Ionicons name="person" size={20} color="#fff" />
-        </View>
-      </TouchableOpacity>
+      <ProfileHeader 
+        navigation={navigation} 
+        userType="user" 
+        userName="João Silva" 
+        userEmail="joao.silva@email.com" 
+      />
     </View>
   );
 

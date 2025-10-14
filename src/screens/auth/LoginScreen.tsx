@@ -134,14 +134,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           <View style={loginScreenStyles.dividerLine} />
         </View>
 
-        {/* Social Login Buttons */}
-        <View style={loginScreenStyles.socialButtonsContainer}>
-          <TouchableOpacity style={loginScreenStyles.socialButton} onPress={handleGoogleLogin}>
-            <Ionicons name="logo-google" size={20} color="#FFD600" />
-            <Text style={loginScreenStyles.socialButtonText}>Continue with Google</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Create Account Link */}
         <TouchableOpacity style={loginScreenStyles.createAccountContainer} onPress={handleCreateAccount}>
           <Text style={loginScreenStyles.createAccountText}>Criar uma conta</Text>

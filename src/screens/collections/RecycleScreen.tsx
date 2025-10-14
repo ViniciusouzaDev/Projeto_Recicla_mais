@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { recycleScreenStyles } from '../../../src/styles/collections/RecycleScreenStyles';
+import ProfileHeader from '../../components/ProfileHeader';
 
 interface Material {
   id: string;
@@ -197,11 +198,12 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
         <Text style={recycleScreenStyles.recycleIcon}>♻️</Text>
       </View>
       
-      <TouchableOpacity style={recycleScreenStyles.avatarButton}>
-        <View style={recycleScreenStyles.avatar}>
-          <Ionicons name="person" size={20} color="#fff" />
-        </View>
-      </TouchableOpacity>
+      <ProfileHeader 
+        navigation={navigation} 
+        userType="user" 
+        userName="João Silva" 
+        userEmail="joao.silva@email.com" 
+      />
     </View>
   );
 

@@ -51,6 +51,20 @@ export default function UserTypeScreen({ navigation }: UserTypeScreenProps) {
         'Ganhar dinheiro por coleta',
         'Acompanhar suas coletas'
       ]
+    },
+    {
+      id: 'company',
+      title: 'Empresa Parceira',
+      subtitle: 'Quero oferecer benefícios e recompensas',
+      icon: '🏢',
+      color: '#FFD600',
+      description: 'Cadastre sua empresa e ofereça benefícios para usuários',
+      features: [
+        'Cadastrar dados da empresa',
+        'Criar benefícios personalizados',
+        'Definir pontos necessários',
+        'Acompanhar resgates de benefícios'
+      ]
     }
   ];
 
@@ -79,8 +93,10 @@ export default function UserTypeScreen({ navigation }: UserTypeScreenProps) {
 
     if (selectedType === 'user') {
       navigation.navigate('Register', { userType: 'user' });
-    } else {
+    } else if (selectedType === 'collector') {
       navigation.navigate('CollectorRegister', { userType: 'collector' });
+    } else if (selectedType === 'company') {
+      navigation.navigate('CompanyAuth', { userType: 'company' });
     }
   };
 

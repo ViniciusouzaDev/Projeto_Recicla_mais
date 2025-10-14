@@ -12,6 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { rankingScreenStyles } from '../../../src/styles/ranking/RankingScreenStyles';
+import ProfileHeader from '../../components/ProfileHeader';
 
 interface User {
   id: number;
@@ -120,11 +121,12 @@ export default function RankingScreen({ navigation }: RankingScreenProps) {
         <Text style={rankingScreenStyles.trophyIcon}>🏆</Text>
       </View>
       
-      <TouchableOpacity style={rankingScreenStyles.avatarButton}>
-        <View style={rankingScreenStyles.avatar}>
-          <Ionicons name="person" size={20} color="#fff" />
-        </View>
-      </TouchableOpacity>
+      <ProfileHeader 
+        navigation={navigation} 
+        userType="user" 
+        userName="João Silva" 
+        userEmail="joao.silva@email.com" 
+      />
     </View>
   );
 

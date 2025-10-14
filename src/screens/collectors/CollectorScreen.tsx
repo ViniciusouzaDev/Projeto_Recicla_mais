@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { collectorScreenStyles } from '../../../src/styles/collectors/CollectorScreenStyles';
+import ProfileHeader from '../../components/ProfileHeader';
 
 interface Collection {
   id: string;
@@ -202,11 +203,12 @@ export default function CollectorScreen({ navigation }: CollectorScreenProps) {
         <Text style={collectorScreenStyles.collectorIcon}>🚛</Text>
       </View>
       
-      <TouchableOpacity style={collectorScreenStyles.avatarButton}>
-        <View style={collectorScreenStyles.avatar}>
-          <Ionicons name="person" size={20} color="#fff" />
-        </View>
-      </TouchableOpacity>
+      <ProfileHeader 
+        navigation={navigation} 
+        userType="user" 
+        userName="João Silva" 
+        userEmail="joao.silva@email.com" 
+      />
     </View>
   );
 
