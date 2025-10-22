@@ -15,17 +15,26 @@ import { Ionicons } from '@expo/vector-icons';
 import logo from '../../../assets/Logo_recicla.png';
 import { dashboardScreenStyles } from '../../../src/styles/dashboard/DashboardScreenStyles';
 import ProfileHeader from '../../components/ProfileHeader';
+import ShareButton from '../../components/ShareButton';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DashboardScreenProps {
   navigation: any;
 }
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState('Home');
   const [userScore] = useState(450);
   const [monthlyProgress] = useState(10);
   const [glowAnim] = useState(new Animated.Value(0));
   const [scoreAnim] = useState(new Animated.Value(0));
+
+  // TODO: Implementar sistema de pontuação real
+  // TODO: Conectar com backend para dados do usuário
+  // TODO: Implementar notificações push
+  // TODO: Adicionar animações mais complexas
+  // TODO: Implementar sistema de conquistas dinâmico
 
   useEffect(() => {
     // Animação de entrada do score
@@ -55,15 +64,12 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     { id: 'Home', icon: 'home', label: 'Home' },
     { id: 'Trophies', icon: 'trophy', label: 'Troféus' },
     { id: 'Recycle', icon: 'leaf', label: 'Reciclar' },
-    { id: 'Rewards', icon: 'gift', label: 'Recompensas' },
+    { id: 'Collections', icon: 'list', label: 'Coletas' },
+    { id: 'Collector', icon: 'car', label: 'Coletador' },
   ];
 
   const renderHeader = () => (
     <View style={dashboardScreenStyles.header}>
-      <TouchableOpacity style={dashboardScreenStyles.menuButton}>
-        <Ionicons name="menu" size={24} color="#333" />
-      </TouchableOpacity>
-      
       <View style={dashboardScreenStyles.logoContainer}>
         <Image source={logo} style={dashboardScreenStyles.logo} />
         <Text style={dashboardScreenStyles.appName}>Recicla+</Text>
@@ -77,6 +83,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       />
     </View>
   );
+  
+  const shareMessage = "Estou contribuindo para um mundo mais sustentável com o Recicla+! Já reciclei vários materiais e ganhei " + userScore + " pontos. Junte-se a mim nessa missão! #ReciclaMais #Sustentabilidade";
 
   const renderScoreCard = () => (
     <Animated.View style={[
@@ -116,6 +124,14 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           <View style={dashboardScreenStyles.scoreRight}>
             <Ionicons name="trophy" size={40} color="#FFD600" />
           </View>
+        </View>
+        <View style={dashboardScreenStyles.shareButtonContainer}>
+          <ShareButton 
+            message={shareMessage}
+            title="Compartilhar Progresso"
+            showFacebook={true}
+            showInstagram={true}
+          />
         </View>
       </LinearGradient>
     </Animated.View>
@@ -199,8 +215,10 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
               navigation.navigate('Ranking');
             } else if (tab.id === 'Recycle') {
               navigation.navigate('Recycle');
-            } else if (tab.id === 'Rewards') {
-              navigation.navigate('Rewards');
+            } else if (tab.id === 'Collections') {
+              navigation.navigate('CollectionStatus');
+            } else if (tab.id === 'Collector') {
+              navigation.navigate('Collector');
             }
           }}
         >
@@ -222,7 +240,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
 
   return (
     <SafeAreaView style={dashboardScreenStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
       
       {/* Background Pattern */}
       <View style={dashboardScreenStyles.backgroundPattern} />

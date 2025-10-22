@@ -44,8 +44,19 @@ export default function RegisterScreen({ navigation, route }: RegisterScreenProp
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isCollector] = useState(true); // Sempre true para todos os usuários
+  const [vehicleType, setVehicleType] = useState('');
+  const [licensePlate, setLicensePlate] = useState('');
+  const [workingArea, setWorkingArea] = useState('');
   const [glowAnim] = useState(new Animated.Value(0));
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+  const vehicleTypes = [
+    { id: 'bike', name: 'Bicicleta', icon: '🚲' },
+    { id: 'motorcycle', name: 'Moto', icon: '🏍️' },
+    { id: 'car', name: 'Carro', icon: '🚗' },
+    { id: 'truck', name: 'Caminhão', icon: '🚛' }
+  ];
 
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
@@ -102,6 +113,17 @@ export default function RegisterScreen({ navigation, route }: RegisterScreenProp
       newErrors.confirmPassword = 'As senhas não coincidem';
     }
 
+    // Validações dos campos de coletador (sempre obrigatórios)
+    if (!vehicleType.trim()) {
+      newErrors.vehicleType = 'Tipo de veículo é obrigatório';
+    }
+    if (!licensePlate.trim()) {
+      newErrors.licensePlate = 'Placa do veículo é obrigatória';
+    }
+    if (!workingArea.trim()) {
+      newErrors.workingArea = 'Área de trabalho é obrigatória';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -132,7 +154,7 @@ export default function RegisterScreen({ navigation, route }: RegisterScreenProp
     
     Alert.alert(
       'Cadastro Realizado!',
-      'Seu cadastro foi realizado com sucesso. Bem-vindo ao ReciclaMais!',
+      'Seu cadastro foi realizado com sucesso. Bem-vindo ao ReciclaMais!\n\nVocê pode escolher aceitar coletas na aba "Coletador" quando desejar.',
       [{ text: 'OK', onPress: () => navigation.navigate('Dashboard') }]
     );
   };
@@ -264,6 +286,62 @@ export default function RegisterScreen({ navigation, route }: RegisterScreenProp
             />
           </View>
           {errors.confirmPassword && <Text style={registerScreenStyles.errorText}>{errors.confirmPassword}</Text>}
+
+          {/* Campos de coletador (sempre visíveis) */}
+          <Text style={registerScreenStyles.sectionTitle}>Informações do Veículo</Text>
+              
+              <View style={registerScreenStyles.vehicleTypeContainer}>
+                <Text style={registerScreenStyles.sectionLabel}>Tipo de Veículo</Text>
+                <View style={registerScreenStyles.vehicleTypesGrid}>
+                  {vehicleTypes.map((vehicle) => (
+                    <TouchableOpacity
+                      key={vehicle.id}
+                      style={[
+                        registerScreenStyles.vehicleTypeCard,
+                        vehicleType === vehicle.id && registerScreenStyles.selectedVehicleType
+                      ]}
+                      onPress={() => setVehicleType(vehicle.id)}
+                    >
+                      <Text style={registerScreenStyles.vehicleIcon}>{vehicle.icon}</Text>
+                      <Text style={[
+                        registerScreenStyles.vehicleName,
+                        vehicleType === vehicle.id && registerScreenStyles.selectedVehicleName
+                      ]}>
+                        {vehicle.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              {errors.vehicleType && <Text style={registerScreenStyles.errorText}>{errors.vehicleType}</Text>}
+
+              <View style={registerScreenStyles.inputWrapper}>
+                <Ionicons name="car" size={20} color="#00D1FF" style={registerScreenStyles.inputIcon} />
+                <TextInput
+                  style={registerScreenStyles.input}
+                  placeholder="Placa do veículo *"
+                  placeholderTextColor="#666"
+                  value={licensePlate}
+                  onChangeText={setLicensePlate}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                />
+              </View>
+              {errors.licensePlate && <Text style={registerScreenStyles.errorText}>{errors.licensePlate}</Text>}
+
+              <View style={registerScreenStyles.inputWrapper}>
+                <Ionicons name="location" size={20} color="#00D1FF" style={registerScreenStyles.inputIcon} />
+                <TextInput
+                  style={registerScreenStyles.input}
+                  placeholder="Área de trabalho (bairros, regiões) *"
+                  placeholderTextColor="#666"
+                  value={workingArea}
+                  onChangeText={setWorkingArea}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
+              </View>
+              {errors.workingArea && <Text style={registerScreenStyles.errorText}>{errors.workingArea}</Text>}
         </View>
 
         {/* Register Button */}

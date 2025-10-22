@@ -145,4 +145,100 @@ export const registerScreenStyles = StyleSheet.create({
     textAlignVertical: 'top',
     minHeight: 80,
   },
+  // Estilos para opção de coletador
+  collectorOptionContainer: {
+    marginVertical: 20,
+  },
+  collectorToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00D1FF',
+    paddingHorizontal: 15,
+    paddingVertical: 16,
+    shadowColor: '#00D1FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  collectorToggleActive: {
+    borderColor: '#00FF84',
+    backgroundColor: 'rgba(0, 255, 132, 0.1)',
+  },
+  collectorToggleText: {
+    fontSize: 16,
+    color: '#666',
+    marginLeft: 12,
+    fontWeight: '500',
+  },
+  collectorToggleTextActive: {
+    color: '#00FF84',
+    fontWeight: '600',
+  },
+  // Estilos para seções
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00D1FF',
+    marginTop: 20,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 10,
+  },
+  // Estilos para seleção de veículo
+  vehicleTypeContainer: {
+    marginBottom: 15,
+  },
+  vehicleTypesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  vehicleTypeCard: {
+    width: '48%',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00D1FF',
+    padding: 15,
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#00D1FF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  selectedVehicleType: {
+    borderColor: '#00FF84',
+    backgroundColor: 'rgba(0, 255, 132, 0.1)',
+  },
+  vehicleIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  vehicleName: {
+    fontSize: 14,
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  selectedVehicleName: {
+    color: '#00FF84',
+    fontWeight: '600',
+  },
 });

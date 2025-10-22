@@ -267,6 +267,10 @@ export const recycleScreenStyles = StyleSheet.create({
     marginLeft: 8,
     letterSpacing: 1,
   },
+  shareButton: {
+    marginTop: 15,
+    alignSelf: 'center',
+  },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',

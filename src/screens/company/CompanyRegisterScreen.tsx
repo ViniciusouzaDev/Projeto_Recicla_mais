@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import logo from '../../../assets/Logo_recicla.png';
 import { commonStyles } from '../../styles/shared/CommonStyles';
+import { validateCNPJ } from '../../../utils/validation';
 
 interface CompanyRegisterScreenProps {
   navigation: any;
@@ -42,8 +43,8 @@ export default function CompanyRegisterScreen({ navigation }: CompanyRegisterScr
 
     if (!formData.cnpj.trim()) {
       newErrors.cnpj = 'CNPJ é obrigatório';
-    } else if (formData.cnpj.length !== 14) {
-      newErrors.cnpj = 'CNPJ deve ter 14 dígitos';
+    } else if (!validateCNPJ(formData.cnpj)) {
+      newErrors.cnpj = 'Digite um CNPJ válido';
     }
 
     if (!formData.contato.trim()) {
@@ -303,3 +304,4 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 });
+

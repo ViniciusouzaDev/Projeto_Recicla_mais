@@ -250,4 +250,51 @@ export const collectorScreenStyles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  // Tab Bar Styles
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    borderTopWidth: 1,
+    borderTopColor: '#00D1FF',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  activeTab: {
+    backgroundColor: 'rgba(0, 209, 255, 0.1)',
+    borderRadius: 8,
+  },
+  tabLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  activeTabLabel: {
+    color: '#00D1FF',
+    fontWeight: '600',
+  },
+  // Estilos para botões desabilitados
+  disabledButton: {
+    opacity: 0.6,
+  },
+  disabledButtonText: {
+    color: '#999',
+  },
+  // Estilos para indicador de localização
+  locationStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  locationStatusText: {
+    fontSize: 12,
+    marginLeft: 4,
+    fontWeight: '500',
+  },
 });

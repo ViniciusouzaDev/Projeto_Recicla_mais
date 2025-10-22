@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import logo from '../../../assets/Logo_recicla.png';
 import { commonStyles } from '../../styles/shared/CommonStyles';
+import ShareButton from '../../components/ShareButton';
 
 interface ProfileScreenProps {
   navigation: any;
@@ -31,6 +32,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   });
 
   const [formData, setFormData] = useState(userData);
+
+  // TODO: Implementar upload de foto de perfil
+  // TODO: Conectar com backend para persistir dados
+  // TODO: Implementar validação de formulário
+  // TODO: Adicionar campos de preferências do usuário
+  // TODO: Implementar sistema de notificações do usuário
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -177,6 +184,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <TouchableOpacity style={[commonStyles.primaryButton, styles.button]} onPress={handleEdit}>
             <Text style={commonStyles.buttonText}>Editar Informações</Text>
           </TouchableOpacity>
+          
+          <ShareButton 
+            message={`Olha só meu perfil no Recicla+! Sou ${userData.userType === 'company' ? 'uma empresa' : 'um usuário'} comprometido com a sustentabilidade. Junte-se a mim nessa missão! #ReciclaMais #Sustentabilidade`}
+            title="Compartilhar Perfil"
+            style={styles.button}
+          />
+          
           <TouchableOpacity style={[styles.logoutButton, styles.button]} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
             <Text style={styles.logoutText}>Sair da Conta</Text>
@@ -329,3 +343,4 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+

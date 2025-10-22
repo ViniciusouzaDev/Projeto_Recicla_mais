@@ -17,6 +17,9 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { recycleScreenStyles } from '../../../src/styles/collections/RecycleScreenStyles';
 import ProfileHeader from '../../components/ProfileHeader';
+import ShareButton from '../../components/ShareButton';
+import { collectionService } from '../../services/CollectionService';
+import { CollectionRequest } from '../../types/CollectionTypes';
 
 interface Material {
   id: string;
@@ -37,6 +40,12 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [activeTab, setActiveTab] = useState('Recycle');
   const [scaleAnim] = useState(new Animated.Value(1));
+
+  // TODO: Implementar reconhecimento de imagem com IA
+  // TODO: Adicionar mais tipos de materiais
+  // TODO: Implementar sistema de pontuação por material
+  // TODO: Adicionar validação de qualidade da foto
+  // TODO: Implementar histórico de coletas
 
   const materials: Material[] = [
     {
@@ -63,7 +72,7 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
     {
       id: 'plastic',
       name: 'Plástico',
-      color: '#FF6B00',
+      color: '#ff0000ff',
       icon: '🥤',
       description: 'Garrafas, embalagens, sacos'
     }
@@ -73,7 +82,8 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
         { id: 'Home', icon: 'home', label: 'Home' },
         { id: 'Trophies', icon: 'trophy', label: 'Troféus' },
         { id: 'Recycle', icon: 'leaf', label: 'Reciclar' },
-        { id: 'Rewards', icon: 'gift', label: 'Recompensas' },
+        { id: 'Collections', icon: 'list', label: 'Coletas' },
+        { id: 'Collector', icon: 'car', label: 'Coletador' },
   ];
 
   useEffect(() => {
@@ -158,7 +168,7 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedMaterial) {
       Alert.alert('Atenção', 'Selecione o tipo de material');
       return;
@@ -174,25 +184,38 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
       return;
     }
 
-    const material = materials.find(m => m.id === selectedMaterial);
-    Alert.alert(
-      'Sucesso!', 
-      `Lixo ${material?.name} cadastrado com sucesso!\n\nEndereço: ${address}`,
-      [{ text: 'OK', onPress: () => {
-        // Reset form
-        setSelectedMaterial(null);
-        setPhoto(null);
-        setAddress('');
-      }}]
-    );
+    try {
+      const material = materials.find(m => m.id === selectedMaterial);
+      
+      // Criar solicitação de coleta
+      const collectionRequest = await collectionService.createCollectionRequest({
+        userId: 'user_123', // TODO: Obter ID do usuário logado
+        materialType: selectedMaterial,
+        materialName: material?.name || '',
+        photoUri: photo,
+        address: address,
+        latitude: 0, // TODO: Obter coordenadas reais
+        longitude: 0,
+      });
+
+      Alert.alert(
+        'Sucesso!', 
+        `Solicitação de coleta ${material?.name} criada com sucesso!\n\nStatus: ${collectionRequest.status}\n\nEndereço: ${address}\n\nAguarde um coletor aceitar sua solicitação.`,
+        [{ text: 'OK', onPress: () => {
+          // Reset form
+          setSelectedMaterial(null);
+          setPhoto(null);
+          setAddress('');
+        }}]
+      );
+    } catch (error) {
+      console.error('Erro ao criar solicitação de coleta:', error);
+      Alert.alert('Erro', 'Não foi possível criar a solicitação de coleta. Tente novamente.');
+    }
   };
 
   const renderHeader = () => (
     <View style={recycleScreenStyles.header}>
-      <TouchableOpacity style={recycleScreenStyles.menuButton}>
-        <Ionicons name="menu" size={24} color="#333" />
-      </TouchableOpacity>
-      
       <View style={recycleScreenStyles.titleContainer}>
         <Text style={recycleScreenStyles.title}>Reciclar</Text>
         <Text style={recycleScreenStyles.recycleIcon}>♻️</Text>
@@ -304,6 +327,14 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
         <Ionicons name="checkmark-circle" size={24} color="#000" />
         <Text style={recycleScreenStyles.confirmButtonText}>CONFIRMAR CADASTRO</Text>
       </TouchableOpacity>
+      
+      {selectedMaterial && photo && address && (
+        <ShareButton 
+          message={`Acabei de cadastrar um lixo ${materials.find(m => m.id === selectedMaterial)?.name} no Recicla+! Estou fazendo minha parte pela sustentabilidade. Junte-se a mim! #ReciclaMais #Sustentabilidade`}
+          title="Compartilhar Coleta"
+          style={recycleScreenStyles.shareButton}
+        />
+      )}
     </View>
   );
 
@@ -322,9 +353,10 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
               navigation.navigate('Dashboard');
             } else if (tab.id === 'Trophies') {
               navigation.navigate('Ranking');
-            }
-            else if (tab.id === 'Rewards') {
-              navigation.navigate('Rewards');
+            } else if (tab.id === 'Collections') {
+              navigation.navigate('CollectionStatus');
+            } else if (tab.id === 'Collector') {
+              navigation.navigate('Collector');
             }
           }}
         >

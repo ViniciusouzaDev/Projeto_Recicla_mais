@@ -104,7 +104,7 @@ export const commonStyles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Fundo mais claro para melhor contraste
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#00D1FF',
@@ -120,7 +120,7 @@ export const commonStyles = StyleSheet.create({
     flex: 1,
     paddingVertical: 16,
     fontSize: 16,
-    color: '#fff',
+    color: '#fff', // Texto branco para melhor contraste no tema dark
   },
   inputIcon: {
     marginRight: 12,

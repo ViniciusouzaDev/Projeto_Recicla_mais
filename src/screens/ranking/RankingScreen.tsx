@@ -47,7 +47,8 @@ export default function RankingScreen({ navigation }: RankingScreenProps) {
     { id: 'Home', icon: 'home', label: 'Home' },
     { id: 'Trophies', icon: 'trophy', label: 'Troféus' },
     { id: 'Recycle', icon: 'leaf', label: 'Reciclar' },
-    { id: 'Rewards', icon: 'gift', label: 'Recompensas' },
+    { id: 'Collections', icon: 'list', label: 'Coletas' },
+    { id: 'Collector', icon: 'car', label: 'Coletador' },
   ];
 
   useEffect(() => {
@@ -253,8 +254,10 @@ export default function RankingScreen({ navigation }: RankingScreenProps) {
               navigation.navigate('Dashboard');
             } else if (tab.id === 'Recycle') {
               navigation.navigate('Recycle');
-            } else if (tab.id === 'Rewards') {
-              navigation.navigate('Rewards');
+            } else if (tab.id === 'Collections') {
+              navigation.navigate('CollectionStatus');
+            } else if (tab.id === 'Collector') {
+              navigation.navigate('Collector');
             }
           }}
         >

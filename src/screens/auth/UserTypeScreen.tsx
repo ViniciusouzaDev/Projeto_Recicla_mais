@@ -39,20 +39,6 @@ export default function UserTypeScreen({ navigation }: UserTypeScreenProps) {
       ]
     },
     {
-      id: 'collector',
-      title: 'Coletador',
-      subtitle: 'Quero coletar lixo e ganhar dinheiro',
-      icon: '🚛',
-      color: '#00D1FF',
-      description: 'Visualize coletas disponíveis e ganhe dinheiro coletando',
-      features: [
-        'Ver coletas disponíveis na região',
-        'Aceitar coletas próximas',
-        'Ganhar dinheiro por coleta',
-        'Acompanhar suas coletas'
-      ]
-    },
-    {
       id: 'company',
       title: 'Empresa Parceira',
       subtitle: 'Quero oferecer benefícios e recompensas',
@@ -93,8 +79,6 @@ export default function UserTypeScreen({ navigation }: UserTypeScreenProps) {
 
     if (selectedType === 'user') {
       navigation.navigate('Register', { userType: 'user' });
-    } else if (selectedType === 'collector') {
-      navigation.navigate('CollectorRegister', { userType: 'collector' });
     } else if (selectedType === 'company') {
       navigation.navigate('CompanyAuth', { userType: 'company' });
     }

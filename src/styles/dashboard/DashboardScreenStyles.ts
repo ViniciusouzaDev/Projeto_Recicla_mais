@@ -3,7 +3,12 @@ import { StyleSheet } from 'react-native';
 export const dashboardScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#0A0A0A', // Corrigido para ficar igual às outras telas
+  },
+  shareButtonContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+    paddingBottom: 10,
   },
   backgroundPattern: {
     position: 'absolute',

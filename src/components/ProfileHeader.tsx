@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { commonStyles } from '../styles/shared/CommonStyles';
+import ThemeToggle from './ThemeToggle';
 
 interface ProfileHeaderProps {
   navigation: any;
@@ -114,6 +115,10 @@ export default function ProfileHeader({
                   <Ionicons name="person-outline" size={24} color="#00D1FF" />
                   <Text style={styles.menuText}>Editar Perfil</Text>
                 </TouchableOpacity>
+
+                <View style={styles.themeToggleContainer}>
+                  <ThemeToggle />
+                </View>
 
                 {userType === 'company' && (
                   <>
@@ -244,4 +249,9 @@ const styles = StyleSheet.create({
   logoutText: {
     color: '#FF6B6B',
   },
+  themeToggleContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
 });
+
