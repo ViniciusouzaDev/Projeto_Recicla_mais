@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { LoginScreen, RegisterScreen, UserTypeScreen, CompanyAuthScreen } from './src/screens/auth';
 import { DashboardScreen } from './src/screens/dashboard';
 import { RankingScreen } from './src/screens/ranking';
-import { RewardsScreen } from './src/screens/rewards';
+///import { RewardsScreen } from './src/screens/rewards';
 import { RecycleScreen, CollectionStatusScreen } from './src/screens/collections';
 import { CollectorScreen } from './src/screens/collectors';
 import { ProfileScreen } from './src/screens/profile';
