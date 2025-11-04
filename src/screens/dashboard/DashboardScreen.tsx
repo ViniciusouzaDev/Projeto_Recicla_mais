@@ -1,72 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Image,
   StatusBar,
   Animated,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import logo from '../../../assets/Logo_recicla.png';
-import { dashboardScreenStyles } from '../../../src/styles/dashboard/DashboardScreenStyles';
-import ProfileHeader from '../../components/ProfileHeader';
-import ShareButton from '../../components/ShareButton';
-import { useTheme } from '../../contexts/ThemeContext';
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import logo from "../../../assets/Logo_recicla.png";
+import { dashboardScreenStyles } from "../../../src/styles/dashboard/DashboardScreenStyles";
+import ProfileHeader from "../../components/ProfileHeader";
+import ShareButton from "../../components/ShareButton";
+import { useTheme } from "../../contexts/ThemeContext";
+import { userService } from "../../services/userService";
 
-interface DashboardScreenProps {
-  navigation: any;
-}
-
-export default function DashboardScreen({ navigation }: DashboardScreenProps) {
+export default function DashboardScreen({ navigation }: any) {
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState('Home');
-  const [userScore] = useState(450);
-  const [monthlyProgress] = useState(10);
-  const [glowAnim] = useState(new Animated.Value(0));
-  const [scoreAnim] = useState(new Animated.Value(0));
 
-  // TODO: Implementar sistema de pontuação real
-  // TODO: Conectar com backend para dados do usuário
-  // TODO: Implementar notificações push
-  // TODO: Adicionar animações mais complexas
-  // TODO: Implementar sistema de conquistas dinâmico
+  const [activeTab, setActiveTab] = useState("Home");
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userScore, setUserScore] = useState(0);
+  const [monthlyProgress, setMonthlyProgress] = useState(0);
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [scoreAnim] = useState(new Animated.Value(0));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Animação de entrada do score
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
     Animated.timing(scoreAnim, {
       toValue: 1,
       duration: 1000,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [userScore]);
 
-  const achievements = [
-    { id: 1, name: 'Primeira Reciclagem', icon: '🏆', color: '#FFD700' },
-    { id: 2, name: 'Eco Warrior', icon: '🛡️', color: '#32CD32' },
-    { id: 3, name: 'Green Master', icon: '🌱', color: '#00CED1' },
-    { id: 4, name: 'Recycle King', icon: '👑', color: '#FF6347' },
-  ];
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const [profile, scoreHistory, progress, userAchievements, history] =
+        await Promise.all([
+          userService.getProfile(),
+          userService.getScoreHistory(),
+          userService.getProgress(),
+          userService.getAchievements(),
+          userService.getChartData(),
+        ]);
 
-  const chartData = [
-    { week: 'Sem 1', points: 100 },
-    { week: 'Sem 2', points: 150 },
-    { week: 'Sem 3', points: 200 },
-    { week: 'Sem 4', points: 300 },
-    { week: 'Esta Semana', points: 450 },
-  ];
-
-  const tabs = [
-    { id: 'Home', icon: 'home', label: 'Home' },
-    { id: 'Trophies', icon: 'trophy', label: 'Troféus' },
-    { id: 'Recycle', icon: 'leaf', label: 'Reciclar' },
-    { id: 'Collections', icon: 'list', label: 'Coletas' },
-    { id: 'Collector', icon: 'car', label: 'Coletador' },
-  ];
+      setUserProfile(profile);
+      setUserScore(
+        scoreHistory.reduce((acc: number, item: any) => acc + item.pontos, 0)
+      );
+      setMonthlyProgress(progress.percentual || 0);
+      setAchievements(userAchievements);
+      setChartData(history);
+    } catch (error: any) {
+      console.error("❌ Erro ao buscar dados do usuário:", error);
+      if (error.message === "Usuário não autenticado") {
+        navigation.replace("Login");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderHeader = () => (
     <View style={dashboardScreenStyles.header}>
@@ -74,33 +78,39 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         <Image source={logo} style={dashboardScreenStyles.logo} />
         <Text style={dashboardScreenStyles.appName}>Recicla+</Text>
       </View>
-      
-      <ProfileHeader 
-        navigation={navigation} 
-        userType="user" 
-        userName="João Silva" 
-        userEmail="joao.silva@email.com" 
-      />
+
+      {userProfile && (
+        <ProfileHeader
+          navigation={navigation}
+          userType="user"
+          userName={userProfile.nome}
+          userEmail={userProfile.email}
+        />
+      )}
     </View>
   );
-  
-  const shareMessage = "Estou contribuindo para um mundo mais sustentável com o Recicla+! Já reciclei vários materiais e ganhei " + userScore + " pontos. Junte-se a mim nessa missão! #ReciclaMais #Sustentabilidade";
+
+  const shareMessage = `Estou contribuindo para um mundo mais sustentável com o Recicla+! Já reciclei vários materiais e ganhei ${userScore} pontos. Junte-se a mim nessa missão! #ReciclaMais #Sustentabilidade`;
 
   const renderScoreCard = () => (
-    <Animated.View style={[
-      dashboardScreenStyles.scoreCard,
-      {
-        opacity: scoreAnim,
-        transform: [{
-          scale: scoreAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.8, 1],
-          })
-        }]
-      }
-    ]}>
+    <Animated.View
+      style={[
+        dashboardScreenStyles.scoreCard,
+        {
+          opacity: scoreAnim,
+          transform: [
+            {
+              scale: scoreAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.8, 1],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
       <LinearGradient
-        colors={['#00FF84', '#00E676', '#00C853']}
+        colors={["#00FF84", "#00E676", "#00C853"]}
         style={dashboardScreenStyles.scoreGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -108,29 +118,33 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         <View style={dashboardScreenStyles.scoreContent}>
           <View style={dashboardScreenStyles.scoreLeft}>
             <Text style={dashboardScreenStyles.scoreLabel}>Sua Pontuação</Text>
-            <Animated.Text style={[
-              dashboardScreenStyles.scoreValue,
-              {
-                opacity: scoreAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.8, 1],
-                })
-              }
-            ]}>
+            <Animated.Text
+              style={[
+                dashboardScreenStyles.scoreValue,
+                {
+                  opacity: scoreAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ]}
+            >
               {userScore} pts
             </Animated.Text>
-            <Text style={dashboardScreenStyles.scoreSubtext}>+{monthlyProgress}% este mês</Text>
+            <Text style={dashboardScreenStyles.scoreSubtext}>
+              +{monthlyProgress}% este mês
+            </Text>
           </View>
           <View style={dashboardScreenStyles.scoreRight}>
             <Ionicons name="trophy" size={40} color="#FFD600" />
           </View>
         </View>
         <View style={dashboardScreenStyles.shareButtonContainer}>
-          <ShareButton 
+          <ShareButton
             message={shareMessage}
             title="Compartilhar Progresso"
-            showFacebook={true}
-            showInstagram={true}
+            showFacebook
+            showInstagram
           />
         </View>
       </LinearGradient>
@@ -139,26 +153,30 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
 
   const renderChart = () => (
     <View style={dashboardScreenStyles.chartContainer}>
-      <Text style={dashboardScreenStyles.chartTitle}>Evolução da Pontuação</Text>
+      <Text style={dashboardScreenStyles.chartTitle}>
+        Evolução da Pontuação
+      </Text>
       <View style={dashboardScreenStyles.chart}>
         {chartData.map((item, index) => (
           <View key={index} style={dashboardScreenStyles.chartBar}>
-            <View 
+            <View
               style={[
-                dashboardScreenStyles.bar, 
-                { 
-                  height: (item.points / 500) * 100,
-                  backgroundColor: index === chartData.length - 1 ? '#00FF84' : '#00D1FF',
-                  shadowColor: index === chartData.length - 1 ? '#00FF84' : '#00D1FF',
+                dashboardScreenStyles.bar,
+                {
+                  height: Math.min((item.pontos / 500) * 100, 100),
+                  backgroundColor:
+                    index === chartData.length - 1 ? "#00FF84" : "#00D1FF",
+                  shadowColor:
+                    index === chartData.length - 1 ? "#00FF84" : "#00D1FF",
                   shadowOffset: { width: 0, height: 0 },
                   shadowOpacity: 0.5,
                   shadowRadius: 8,
                   elevation: 5,
-                }
-              ]} 
+                },
+              ]}
             />
-            <Text style={dashboardScreenStyles.barLabel}>{item.week}</Text>
-            <Text style={dashboardScreenStyles.barValue}>{item.points}</Text>
+            <Text style={dashboardScreenStyles.barLabel}>{item.semana}</Text>
+            <Text style={dashboardScreenStyles.barValue}>{item.pontos}</Text>
           </View>
         ))}
       </View>
@@ -169,22 +187,35 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     <View style={dashboardScreenStyles.achievementsContainer}>
       <Text style={dashboardScreenStyles.achievementsTitle}>Conquistas</Text>
       <View style={dashboardScreenStyles.achievementsGrid}>
-        {achievements.map((achievement) => (
-          <View key={achievement.id} style={[
-            dashboardScreenStyles.achievementBadge,
-            {
-              borderColor: achievement.color,
-              shadowColor: achievement.color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 5,
-            }
-          ]}>
-            <Text style={dashboardScreenStyles.achievementIcon}>{achievement.icon}</Text>
-            <Text style={dashboardScreenStyles.achievementName}>{achievement.name}</Text>
-          </View>
-        ))}
+        {achievements.length > 0 ? (
+          achievements.map((achievement) => (
+            <View
+              key={achievement.id}
+              style={[
+                dashboardScreenStyles.achievementBadge,
+                {
+                  borderColor: achievement.color || "#00FF84",
+                  shadowColor: achievement.color || "#00FF84",
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 5,
+                },
+              ]}
+            >
+              <Text style={dashboardScreenStyles.achievementIcon}>
+                {achievement.icon}
+              </Text>
+              <Text style={dashboardScreenStyles.achievementName}>
+                {achievement.name}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <Text style={{ textAlign: "center", color: "#888" }}>
+            Nenhuma conquista ainda.
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -200,6 +231,14 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     </View>
   );
 
+  const tabs = [
+    { id: "Home", icon: "home", label: "Home" },
+    { id: "Trophies", icon: "trophy", label: "Troféus" },
+    { id: "Recycle", icon: "leaf", label: "Reciclar" },
+    { id: "Collections", icon: "list", label: "Coletas" },
+    { id: "Collector", icon: "car", label: "Coletador" },
+  ];
+
   const renderTabBar = () => (
     <View style={dashboardScreenStyles.tabBar}>
       {tabs.map((tab) => (
@@ -207,30 +246,28 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           key={tab.id}
           style={[
             dashboardScreenStyles.tab,
-            activeTab === tab.id && dashboardScreenStyles.activeTab
+            activeTab === tab.id && dashboardScreenStyles.activeTab,
           ]}
           onPress={() => {
             setActiveTab(tab.id);
-            if (tab.id === 'Trophies') {
-              navigation.navigate('Ranking');
-            } else if (tab.id === 'Recycle') {
-              navigation.navigate('Recycle');
-            } else if (tab.id === 'Collections') {
-              navigation.navigate('CollectionStatus');
-            } else if (tab.id === 'Collector') {
-              navigation.navigate('Collector');
-            }
+            if (tab.id === "Trophies") navigation.navigate("Ranking");
+            if (tab.id === "Recycle") navigation.navigate("Recycle");
+            if (tab.id === "Collections")
+              navigation.navigate("CollectionStatus");
+            if (tab.id === "Collector") navigation.navigate("Collector");
           }}
         >
           <Ionicons
             name={tab.icon as any}
             size={24}
-            color={activeTab === tab.id ? '#00FF84' : '#666'}
+            color={activeTab === tab.id ? "#00FF84" : "#666"}
           />
-          <Text style={[
-            dashboardScreenStyles.tabLabel,
-            activeTab === tab.id && dashboardScreenStyles.activeTabLabel
-          ]}>
+          <Text
+            style={[
+              dashboardScreenStyles.tabLabel,
+              activeTab === tab.id && dashboardScreenStyles.activeTabLabel,
+            ]}
+          >
             {tab.label}
           </Text>
         </TouchableOpacity>
@@ -238,25 +275,39 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     </View>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={dashboardScreenStyles.container}>
+        <StatusBar
+          barStyle={theme.isDark ? "light-content" : "dark-content"}
+          backgroundColor={theme.colors.background}
+        />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#00FF84" />
+          <Text style={{ marginTop: 10 }}>Carregando dados...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={dashboardScreenStyles.container}>
-      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
-      
-      {/* Background Pattern */}
+      <StatusBar
+        barStyle={theme.isDark ? "light-content" : "dark-content"}
+        backgroundColor={theme.colors.background}
+      />
       <View style={dashboardScreenStyles.backgroundPattern} />
-      
       {renderHeader()}
-      
-      <ScrollView 
+      <ScrollView
         style={dashboardScreenStyles.content}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         {renderScoreCard()}
         {renderChart()}
         {renderAchievements()}
         {renderMotivationalText()}
       </ScrollView>
-      
       {renderTabBar()}
     </SafeAreaView>
   );
