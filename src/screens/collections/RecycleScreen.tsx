@@ -1,8 +1,8 @@
+// src/screens/collections/RecycleScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
@@ -15,11 +15,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { jwtDecode } from 'jwt-decode';
 import { recycleScreenStyles } from '../../../src/styles/collections/RecycleScreenStyles';
 import ProfileHeader from '../../components/ProfileHeader';
 import ShareButton from '../../components/ShareButton';
 import { collectionService } from '../../services/CollectionService';
-import { CollectionRequest } from '../../types/CollectionTypes';
+import { processPhotoWithIA, IAResponse } from '../../services/IAService';
 
 interface Material {
   id: string;
@@ -36,67 +38,41 @@ interface RecycleScreenProps {
 export default function RecycleScreen({ navigation }: RecycleScreenProps) {
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [address, setAddress] = useState('');
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [activeTab, setActiveTab] = useState('Recycle');
   const [scaleAnim] = useState(new Animated.Value(1));
-
-  // TODO: Implementar reconhecimento de imagem com IA
-  // TODO: Adicionar mais tipos de materiais
-  // TODO: Implementar sistema de pontuação por material
-  // TODO: Adicionar validação de qualidade da foto
-  // TODO: Implementar histórico de coletas
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [detectedMaterials, setDetectedMaterials] = useState<Record<string, number> | null>(null);
 
   const materials: Material[] = [
-    {
-      id: 'paper',
-      name: 'Papel',
-      color: '#00D1FF',
-      icon: '📄',
-      description: 'Jornais, revistas, caixas'
-    },
-    {
-      id: 'glass',
-      name: 'Vidro',
-      color: '#00FF84',
-      icon: '🍾',
-      description: 'Garrafas, potes, frascos'
-    },
-    {
-      id: 'metal',
-      name: 'Metal',
-      color: '#FFD600',
-      icon: '🥫',
-      description: 'Latas, panelas, arames'
-    },
-    {
-      id: 'plastic',
-      name: 'Plástico',
-      color: '#ff0000ff',
-      icon: '🥤',
-      description: 'Garrafas, embalagens, sacos'
-    }
+    { id: 'paper', name: 'Papel', color: '#00D1FF', icon: '📄', description: 'Jornais, revistas, caixas' },
+    { id: 'glass', name: 'Vidro', color: '#00FF84', icon: '🍾', description: 'Garrafas, potes, frascos' },
+    { id: 'metal', name: 'Metal', color: '#FFD600', icon: '🥫', description: 'Latas, panelas, arames' },
+    { id: 'plastic', name: 'Plástico', color: '#FF0000', icon: '🥤', description: 'Garrafas, embalagens, sacos' },
   ];
 
   const tabs = [
-        { id: 'Home', icon: 'home', label: 'Home' },
-        { id: 'Trophies', icon: 'trophy', label: 'Troféus' },
-        { id: 'Recycle', icon: 'leaf', label: 'Reciclar' },
-        { id: 'Collections', icon: 'list', label: 'Coletas' },
-        { id: 'Collector', icon: 'car', label: 'Coletador' },
+    { id: 'Home', icon: 'home', label: 'Home' },
+    { id: 'Trophies', icon: 'trophy', label: 'Troféus' },
+    { id: 'Recycle', icon: 'leaf', label: 'Reciclar' },
+    { id: 'Collections', icon: 'list', label: 'Coletas' },
+    { id: 'Collector', icon: 'car', label: 'Coletador' },
   ];
 
   useEffect(() => {
-    // Solicitar permissões ao carregar a tela
     requestPermissions();
   }, []);
 
   const requestPermissions = async () => {
     try {
-      const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
-      
-      if (locationStatus !== 'granted') {
-        Alert.alert('Permissão necessária', 'Precisamos da permissão de localização para identificar onde está o lixo.');
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permissão necessária',
+          'Precisamos da permissão de localização para identificar onde está o lixo.'
+        );
       }
     } catch (error) {
       console.log('Erro ao solicitar permissões:', error);
@@ -105,22 +81,13 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
 
   const handleMaterialSelect = (materialId: string) => {
     setSelectedMaterial(materialId);
-    
-    // Animação de seleção
     Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
+      Animated.timing(scaleAnim, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start();
   };
 
+  // ======== TIRAR FOTO + PROCESSAR IA COM PREVIEW ========
   const takePhoto = async () => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -130,33 +97,83 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
         quality: 0.8,
       });
 
-      if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
+      if (result.canceled || result.assets.length === 0) return;
+
+      const uri = result.assets[0].uri;
+      setPhoto(uri);
+      setPhotoPreview(uri);
+      setIsProcessingPhoto(true);
+
+      // 1️⃣ Pegando localização
+      let local_coletou = address || 'Local não definido';
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({});
+          const [addr] = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+          if (addr) {
+            local_coletou = `${addr.street || ''} ${addr.streetNumber || ''}, ${addr.district || ''}, ${addr.city || ''}, ${addr.region || ''}`.trim();
+            setAddress(local_coletou);
+          }
+        }
+      } catch {
+        // fallback permanece
       }
-    } catch (error) {
-      console.log('Erro ao tirar foto:', error);
-      Alert.alert('Erro', 'Não foi possível abrir a câmera');
+
+      // 2️⃣ Pegando usuário do token
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const decoded: any = jwtDecode(token); // CORRIGIDO
+      const usuario_id = decoded?.id || decoded?.usuario_id;
+      if (!usuario_id) throw new Error('Usuário inválido');
+
+      // 3️⃣ Data e hora
+      const now = new Date();
+      const data_coletou = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const hora_coletou = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
+      // 4️⃣ Enviar para backend
+      const response: IAResponse = await processPhotoWithIA(
+        uri,
+        usuario_id,
+        local_coletou,
+        data_coletou,
+        hora_coletou
+      );
+
+      if (response.detalhes) {
+        setDetectedMaterials(response.detalhes);
+        const primaryMaterial = Object.keys(response.detalhes)[0];
+        setSelectedMaterial(primaryMaterial);
+      }
+
+      setPhotoPreview(response.previewUri || uri);
+    } catch (error: any) {
+      console.error('Erro ao processar IA:', error);
+      Alert.alert('Erro', error.response?.data?.error || error.message || 'Não foi possível processar a foto.');
+    } finally {
+      setIsProcessingPhoto(false);
     }
   };
 
   const getCurrentLocation = async () => {
     try {
       setIsLoadingLocation(true);
-      
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Erro', 'Permissão de localização não concedida');
         return;
       }
-
       const location = await Location.getCurrentPositionAsync({});
-      const addressResponse = await Location.reverseGeocodeAsync({
+      const [addr] = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
-
-      if (addressResponse.length > 0) {
-        const addr = addressResponse[0];
+      if (addr) {
         const fullAddress = `${addr.street || ''} ${addr.streetNumber || ''}, ${addr.district || ''}, ${addr.city || ''}, ${addr.region || ''}`.trim();
         setAddress(fullAddress);
       }
@@ -169,42 +186,29 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
   };
 
   const handleConfirm = async () => {
-    if (!selectedMaterial) {
-      Alert.alert('Atenção', 'Selecione o tipo de material');
-      return;
-    }
-
-    if (!photo) {
-      Alert.alert('Atenção', 'Tire uma foto do lixo');
-      return;
-    }
-
-    if (!address.trim()) {
-      Alert.alert('Atenção', 'Informe o endereço');
-      return;
-    }
+    if (!selectedMaterial) { Alert.alert('Atenção', 'Selecione o tipo de material'); return; }
+    if (!photo) { Alert.alert('Atenção', 'Tire uma foto do lixo'); return; }
+    if (!address.trim()) { Alert.alert('Atenção', 'Informe o endereço'); return; }
 
     try {
       const material = materials.find(m => m.id === selectedMaterial);
-      
-      // Criar solicitação de coleta
       const collectionRequest = await collectionService.createCollectionRequest({
-        userId: 'user_123', // TODO: Obter ID do usuário logado
+        userId: 'user_123',
         materialType: selectedMaterial,
         materialName: material?.name || '',
         photoUri: photo,
         address: address,
-        latitude: 0, // TODO: Obter coordenadas reais
+        latitude: 0,
         longitude: 0,
       });
 
       Alert.alert(
-        'Sucesso!', 
+        'Sucesso!',
         `Solicitação de coleta ${material?.name} criada com sucesso!\n\nStatus: ${collectionRequest.status}\n\nEndereço: ${address}\n\nAguarde um coletor aceitar sua solicitação.`,
         [{ text: 'OK', onPress: () => {
-          // Reset form
           setSelectedMaterial(null);
           setPhoto(null);
+          setPhotoPreview(null);
           setAddress('');
         }}]
       );
@@ -214,19 +218,14 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
     }
   };
 
+  // ======== RENDERS ========
   const renderHeader = () => (
     <View style={recycleScreenStyles.header}>
       <View style={recycleScreenStyles.titleContainer}>
         <Text style={recycleScreenStyles.title}>Reciclar</Text>
         <Text style={recycleScreenStyles.recycleIcon}>♻️</Text>
       </View>
-      
-      <ProfileHeader 
-        navigation={navigation} 
-        userType="user" 
-        userName="João Silva" 
-        userEmail="joao.silva@email.com" 
-      />
+      <ProfileHeader navigation={navigation} userType="user" userName="João Silva" userEmail="joao.silva@email.com" />
     </View>
   );
 
@@ -264,11 +263,21 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
   const renderCameraSection = () => (
     <View style={recycleScreenStyles.section}>
       <Text style={recycleScreenStyles.sectionTitle}>2. Tire uma foto do lixo</Text>
-      
-      {photo ? (
+      {photoPreview ? (
         <View style={recycleScreenStyles.photoContainer}>
           <View style={recycleScreenStyles.photoWrapper}>
-            <Image source={{ uri: photo }} style={recycleScreenStyles.photoPreview} />
+            <Image source={{ uri: photoPreview }} style={recycleScreenStyles.photoPreview} />
+            {isProcessingPhoto && (
+              <View style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <Text style={{ color:'#fff', fontWeight:'bold' }}>Processando IA...</Text>
+              </View>
+            )}
           </View>
           <TouchableOpacity style={recycleScreenStyles.retakeButton} onPress={takePhoto}>
             <Ionicons name="camera" size={20} color="#000" />
@@ -288,7 +297,6 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
   const renderAddressSection = () => (
     <View style={recycleScreenStyles.section}>
       <Text style={recycleScreenStyles.sectionTitle}>3. Informe o endereço</Text>
-      
       <View style={recycleScreenStyles.addressContainer}>
         <View style={recycleScreenStyles.addressInputWrapper}>
           <Ionicons name="location" size={20} color="#00D1FF" style={recycleScreenStyles.addressIcon} />
@@ -302,17 +310,12 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
             numberOfLines={3}
           />
         </View>
-        
         <TouchableOpacity
           style={[recycleScreenStyles.locationButton, isLoadingLocation && recycleScreenStyles.locationButtonDisabled]}
           onPress={getCurrentLocation}
           disabled={isLoadingLocation}
         >
-          <Ionicons 
-            name={isLoadingLocation ? "hourglass" : "location"} 
-            size={20} 
-            color="#000" 
-          />
+          <Ionicons name={isLoadingLocation ? "hourglass" : "location"} size={20} color="#000" />
           <Text style={recycleScreenStyles.locationButtonText}>
             {isLoadingLocation ? 'Obtendo...' : 'Usar Localização Atual'}
           </Text>
@@ -327,9 +330,8 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
         <Ionicons name="checkmark-circle" size={24} color="#000" />
         <Text style={recycleScreenStyles.confirmButtonText}>CONFIRMAR CADASTRO</Text>
       </TouchableOpacity>
-      
       {selectedMaterial && photo && address && (
-        <ShareButton 
+        <ShareButton
           message={`Acabei de cadastrar um lixo ${materials.find(m => m.id === selectedMaterial)?.name} no Recicla+! Estou fazendo minha parte pela sustentabilidade. Junte-se a mim! #ReciclaMais #Sustentabilidade`}
           title="Compartilhar Coleta"
           style={recycleScreenStyles.shareButton}
@@ -343,32 +345,17 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
       {tabs.map((tab) => (
         <TouchableOpacity
           key={tab.id}
-          style={[
-            recycleScreenStyles.tab,
-            activeTab === tab.id && recycleScreenStyles.activeTab
-          ]}
+          style={[recycleScreenStyles.tab, activeTab === tab.id && recycleScreenStyles.activeTab]}
           onPress={() => {
             setActiveTab(tab.id);
-            if (tab.id === 'Home') {
-              navigation.navigate('Dashboard');
-            } else if (tab.id === 'Trophies') {
-              navigation.navigate('Ranking');
-            } else if (tab.id === 'Collections') {
-              navigation.navigate('CollectionStatus');
-            } else if (tab.id === 'Collector') {
-              navigation.navigate('Collector');
-            }
+            if (tab.id === 'Home') navigation.navigate('Dashboard');
+            else if (tab.id === 'Trophies') navigation.navigate('Ranking');
+            else if (tab.id === 'Collections') navigation.navigate('CollectionStatus');
+            else if (tab.id === 'Collector') navigation.navigate('Collector');
           }}
         >
-          <Ionicons
-            name={tab.icon as any}
-            size={24}
-            color={activeTab === tab.id ? '#00FF84' : '#666'}
-          />
-          <Text style={[
-            recycleScreenStyles.tabLabel,
-            activeTab === tab.id && recycleScreenStyles.activeTabLabel
-          ]}>
+          <Ionicons name={tab.icon as any} size={24} color={activeTab === tab.id ? '#00FF84' : '#666'} />
+          <Text style={[recycleScreenStyles.tabLabel, activeTab === tab.id && recycleScreenStyles.activeTabLabel]}>
             {tab.label}
           </Text>
         </TouchableOpacity>
@@ -379,22 +366,14 @@ export default function RecycleScreen({ navigation }: RecycleScreenProps) {
   return (
     <SafeAreaView style={recycleScreenStyles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
-      
-      {/* Background Pattern */}
       <View style={recycleScreenStyles.backgroundPattern} />
-      
       {renderHeader()}
-      
-      <ScrollView 
-        style={recycleScreenStyles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={recycleScreenStyles.content} showsVerticalScrollIndicator={false}>
         {renderMaterialSelection()}
         {renderCameraSection()}
         {renderAddressSection()}
         {renderConfirmButton()}
       </ScrollView>
-      
       {renderTabBar()}
     </SafeAreaView>
   );

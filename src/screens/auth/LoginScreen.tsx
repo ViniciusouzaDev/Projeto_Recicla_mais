@@ -80,7 +80,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             <Image source={logo} style={loginScreenStyles.logo} />
           </View>
           <Text style={loginScreenStyles.subtitle}>
-            Log in to start collecting aluminum, paper, plastic and glass
+            Marcelo Batista - mudança ngrok
           </Text>
         </View>
 

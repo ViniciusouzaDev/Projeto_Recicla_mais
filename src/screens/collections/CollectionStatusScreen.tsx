@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import logo from '../../../assets/Logo_recicla.png';
 import { commonStyles } from '../../styles/shared/CommonStyles';
 import ProfileHeader from '../../components/ProfileHeader';
@@ -21,28 +22,37 @@ interface CollectionStatusScreenProps {
   navigation: any;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export default function CollectionStatusScreen({ navigation }: CollectionStatusScreenProps) {
   const [collections, setCollections] = useState<CollectionRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  // TODO: Implementar notificações em tempo real
-  // TODO: Adicionar filtros por status
-  // TODO: Implementar busca de coletas
-  // TODO: Adicionar avaliação pós-coleta
-  // TODO: Implementar cancelamento de coleta
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    loadCollections();
+    loadUserAndCollections();
   }, []);
 
-  const loadCollections = async () => {
+  // Carregar usuário logado e suas coletas
+  const loadUserAndCollections = async () => {
     try {
       setIsLoading(true);
-      // Simulando usuário logado - em produção viria do contexto de autenticação
-      const currentUserId = 'user_123'; // TODO: Obter ID do usuário logado do contexto de auth
-      const userCollections = await collectionService.getCollectionsByUser(currentUserId);
-      setCollections(userCollections);
+      const userData = await AsyncStorage.getItem('user'); // Supondo que você salvou os dados do usuário no AsyncStorage
+      if (userData) {
+        const parsedUser: User = JSON.parse(userData);
+        setUser(parsedUser);
+
+        const userCollections = await collectionService.getCollectionsByUser(parsedUser.id);
+        setCollections(userCollections);
+      } else {
+        console.warn('Usuário não logado');
+        setCollections([]);
+      }
     } catch (error) {
       console.error('Erro ao carregar coletas:', error);
     } finally {
@@ -52,7 +62,7 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadCollections();
+    await loadUserAndCollections();
     setRefreshing(false);
   };
 
@@ -93,7 +103,7 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
+    }).format(new Date(date));
   };
 
   const renderHeader = () => (
@@ -102,12 +112,12 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
         <Image source={logo} style={styles.logo} />
         <Text style={styles.appName}>Recicla+</Text>
       </View>
-      
-      <ProfileHeader 
-        navigation={navigation} 
-        userType="user" 
-        userName="João Silva" 
-        userEmail="joao.silva@email.com" 
+
+      <ProfileHeader
+        navigation={navigation}
+        userType="user"
+        userName={user?.name || 'Usuário'}
+        userEmail={user?.email || 'email@exemplo.com'}
       />
     </View>
   );
@@ -117,47 +127,42 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
       <View style={styles.collectionHeader}>
         <View style={styles.materialInfo}>
           <Text style={styles.materialName}>{collection.materialName}</Text>
-          <Text style={styles.collectionDate}>
-            {formatDate(collection.createdAt)}
-          </Text>
+          <Text style={styles.collectionDate}>{formatDate(collection.createdAt)}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(collection.status) }]}>
-          <Ionicons 
-            name={getStatusIcon(collection.status) as any} 
-            size={16} 
-            color="#000" 
-          />
+        <View
+          style={[styles.statusBadge, { backgroundColor: getStatusColor(collection.status) }]}
+        >
+          <Ionicons name={getStatusIcon(collection.status) as any} size={16} color="#000" />
           <Text style={styles.statusText}>
             {collection.status === 'Concluída' ? 'Finalizada' : collection.status}
           </Text>
         </View>
       </View>
-      
-      {/* Foto do Material */}
+
       <View style={styles.photoContainer}>
         <Image source={{ uri: collection.photoUri }} style={styles.materialPhoto} />
       </View>
-      
+
       <View style={styles.collectionDetails}>
         <View style={styles.detailRow}>
           <Ionicons name="location" size={16} color="#00D1FF" />
           <Text style={styles.detailText}>{collection.address}</Text>
         </View>
-        
+
         {collection.collectorName && (
           <View style={styles.detailRow}>
             <Ionicons name="person" size={16} color="#00FF84" />
             <Text style={styles.detailText}>Coletor: {collection.collectorName}</Text>
           </View>
         )}
-        
+
         {collection.estimatedTime && (
           <View style={styles.detailRow}>
             <Ionicons name="time" size={16} color="#FFD600" />
             <Text style={styles.detailText}>Chegada estimada: {collection.estimatedTime}</Text>
           </View>
         )}
-        
+
         {collection.notes && (
           <View style={styles.detailRow}>
             <Ionicons name="document-text" size={16} color="#666" />
@@ -176,7 +181,7 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
         Você ainda não fez nenhuma solicitação de coleta.{'\n'}
         Que tal começar reciclando?
       </Text>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={commonStyles.primaryButton}
         onPress={() => navigation.navigate('Recycle')}
       >
@@ -199,20 +204,12 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.id}
-            style={[
-              styles.tab,
-              tab.id === 'Collections' && styles.activeTab
-            ]}
+            style={[styles.tab, tab.id === 'Collections' && styles.activeTab]}
             onPress={() => {
-              if (tab.id === 'Home') {
-                navigation.navigate('Dashboard');
-              } else if (tab.id === 'Trophies') {
-                navigation.navigate('Ranking');
-              } else if (tab.id === 'Recycle') {
-                navigation.navigate('Recycle');
-              } else if (tab.id === 'Collector') {
-                navigation.navigate('Collector');
-              }
+              if (tab.id === 'Home') navigation.navigate('Dashboard');
+              else if (tab.id === 'Trophies') navigation.navigate('Ranking');
+              else if (tab.id === 'Recycle') navigation.navigate('Recycle');
+              else if (tab.id === 'Collector') navigation.navigate('Collector');
             }}
           >
             <Ionicons
@@ -220,10 +217,7 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
               size={24}
               color={tab.id === 'Collections' ? '#00FF84' : '#666'}
             />
-            <Text style={[
-              styles.tabLabel,
-              tab.id === 'Collections' && styles.activeTabLabel
-            ]}>
+            <Text style={[styles.tabLabel, tab.id === 'Collections' && styles.activeTabLabel]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -235,12 +229,10 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
   return (
     <SafeAreaView style={commonStyles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
-      
       <View style={commonStyles.backgroundPattern} />
-      
       {renderHeader()}
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -253,7 +245,7 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
         }
       >
         <Text style={styles.sectionTitle}>Minhas Coletas</Text>
-        
+
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Carregando coletas...</Text>
@@ -264,7 +256,7 @@ export default function CollectionStatusScreen({ navigation }: CollectionStatusS
           renderEmptyState()
         )}
       </ScrollView>
-      
+
       {renderTabBar()}
     </SafeAreaView>
   );
@@ -280,9 +272,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderBottomWidth: 1,
     borderBottomColor: '#00D1FF',
-  },
-  backButton: {
-    padding: 8,
   },
   logoContainer: {
     flexDirection: 'row',
